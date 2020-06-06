@@ -47,30 +47,35 @@ def encode_categorical(df, cols):
 ########################################################################
 # functions for transforming point predictoin to uncertainty prediction
 ########################################################################
-qs = np.array([0.005,0.025,0.165,0.25, 0.5, 0.75, 0.835, 0.975, 0.995])
-
-qs2 = np.log(qs/(1-qs))*.065
-
-ratios = stats.norm.cdf(qs2)
-ratios /= ratios[4]
-ratios = pd.Series(ratios, index=qs)
+def logit_func(x,a):
+    return np.log(x/(1-x))*a
 
 def quantile_coefs(q):
     return ratios.loc[q].values
 
+
+# levelでgroupbyしてsumを取る. 
+cols = [f"F{i}" for i in range(1, 29)]
+qs = np.array([0.005,0.025,0.165,0.25, 0.5, 0.75, 0.835, 0.975, 0.995])    
 def get_group_preds(pred, level):
     
+
     df = pred.groupby(level)[cols].sum()
+    
     q = np.repeat(qs, len(df))
+    
+    
     df = pd.concat([df]*9, axis=0, sort=False)
     df.reset_index(inplace = True)
-    df[cols] *= quantile_coefs(q)[:, None]
+    df[cols] *= logit_func(q,0.65)[:, None] # トジット変換
     
     
     if level != "id":
         df["id"] = [f"{lev}_X_{q:.3f}_validation" for lev, q in zip(df[level].values, q)]
     else:
         df["id"] = [f"{lev.replace('_validation', '')}_{q:.3f}_validation" for lev, q in zip(df[level].values, q)]
+        
+        
     df = df[["id"]+list(cols)]
     return df
 
@@ -79,7 +84,7 @@ def get_couple_group_preds(pred, level1, level2):
     q = np.repeat(qs, len(df))
     df = pd.concat([df]*9, axis=0, sort=False)
     df.reset_index(inplace = True)
-    df[cols] *= quantile_coefs(q)[:, None]
+    df[cols] *= logit_func(q,0.65)[:, None]
     df["id"] = [f"{lev1}_{lev2}_{q:.3f}_validation" for lev1,lev2, q in 
                 zip(df[level1].values,df[level2].values, q)]
     df = df[["id"]+list(cols)]
