@@ -1,4 +1,5 @@
 import os
+from myTransform import *
 
 data_config = {
     "data_v1":"standard label encoding and price"
