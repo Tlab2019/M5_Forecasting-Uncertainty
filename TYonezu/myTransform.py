@@ -307,7 +307,7 @@ class TRANSFORM_v4(object):
                                 "dept_id": self.get_ratios(coef=0.08), 
                                 "cat_id": self.get_ratios(coef=0.07),
                                 "store_id": self.get_ratios(coef=0.08), 
-                                "state_id": self.get_ratios(coef=0.07), 
+                                "state_id": self.get_ratios(coef=0.07),
                                 "_all_": self.get_ratios(coef=0.05),
                                 ("state_id", "item_id"): self.get_ratios(coef=0.19),
                                 ("state_id", "dept_id"): self.get_ratios(coef=0.1),
@@ -329,7 +329,7 @@ class TRANSFORM_v4(object):
         ratios = self.level_coef_dict[level]
         return ratios.loc[q].values
     
-    def get_poisson_ppf(self,input):
+    def get_norm_ppf(self,input):
         return norm.ppf(input[0],loc=input[1],scale=input[2])
     
     def get_group_preds(self,pred, level):
@@ -340,7 +340,9 @@ class TRANSFORM_v4(object):
         
         for c in tqdm(self.cols):
             p = Pool(cpu_count()) # プロセス数を4に設定
-            df[c] = p.map(self.get_poisson_ppf, np.array([q,df[c].values]).T)
+            df[c] = p.map(self.get_norm_ppf, np.array([q, # quantile
+                                                       df[c].values, # 平均
+                                                       [0.65]*len(df)]).T) # 分散
             p.close()
         
         if level != "id":
@@ -363,7 +365,9 @@ class TRANSFORM_v4(object):
         
         for c in tqdm(self.cols):
             p = Pool(cpu_count()) # プロセス数を4に設定
-            df[c] = p.map(self.get_poisson_ppf, np.array([q,df[c].values],[0.65]*len(df)).T)
+            df[c] = p.map(self.get_norm_ppf, np.array([q, # quantile
+                                                       df[c].values, # 平均
+                                                       [0.65]*len(df)]).T) # 分散
             p.close()
             
         df["id"] = [f"{lev1}_{lev2}_{q:.3f}_validation" for lev1,lev2, q in zip(df[level1].values,df[level2].values, q)]
