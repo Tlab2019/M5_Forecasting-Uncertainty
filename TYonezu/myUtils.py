@@ -42,3 +42,8 @@ def encode_categorical(df, cols):
         df[col] = pd.Series(le.fit_transform(not_null), index=not_null.index)
     #
     return df
+
+def encode_onehot(df, cols):
+    df = pd.get_dummies(df, columns=cols, sparse=True)
+    
+    return df
