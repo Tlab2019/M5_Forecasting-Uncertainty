@@ -5,8 +5,16 @@ from fbprophet import Prophet
 
 class myProphet():
     
-    def __init__(self,holiday=None):
-        self.holidays = holiday
+    def __init__(self,holiday=None,countory=None):
+        
+        self.model = Prophet(daily_seasonality=True)
+        
+        if holiday is not None:
+            self.model = Prophet(daily_seasonality=True,
+                                 holiday=holiday)
+        if countory is not None:
+            self.model = self.model.add_country_holidays(country_name=countory)
+        
         
     def fit(self,y):
         
@@ -14,7 +22,6 @@ class myProphet():
         self.df["ds"] = y.index
         self.df["y"] = y.values
         
-        self.model = Prophet(daily_seasonality=True)
         self.model.fit(self.df)
         
         
@@ -40,7 +47,7 @@ class myProphet():
             
             output = [pred,unc]
         elif mode == "all":
-            output = forecast
+            output = forecast.set_index("ds",drop=True)
         else:
             pass
             
