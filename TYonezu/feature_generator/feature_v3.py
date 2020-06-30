@@ -35,13 +35,16 @@ class FeaturesMaker_v3(object):
         # check existstance of necessary columns
         if check_columns(self.necessary_col,df.columns):
             
-            target_values_tmp = copy.copy(df[self.target_col])
-            df.loc[df["data_part"] != "train",self.target_col] = np.nan
+            
             
             # make lag features
             #for lag in [1,2,3,6,12,24,36]:
             for lag in [28,35,42,49,56]:
                 df['sold_lag_'+str(lag)] = df.groupby(['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'state_id'],as_index=False)[self.target_col].shift(lag).astype(np.float16)
+            
+            # save target values temporaly
+            target_values_tmp = copy.copy(df[self.target_col])
+            df.loc[~(df["data_part"] == "train"),self.target_col] = np.nan
             
             
             # make State-of-the-art feature
