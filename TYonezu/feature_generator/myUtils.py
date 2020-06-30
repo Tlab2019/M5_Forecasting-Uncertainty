@@ -43,7 +43,7 @@ def label_encode(df, cols):
     #
     return df
 
-def encode_onehot(df, cols):
+def onehot_encode(df, cols):
     df = pd.get_dummies(df, columns=cols, sparse=True)
     
     return df

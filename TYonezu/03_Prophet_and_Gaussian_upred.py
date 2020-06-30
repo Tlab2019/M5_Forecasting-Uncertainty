@@ -122,6 +122,6 @@ if __name__ == "__main__":
         tmp = {"col":col,"ts":data[col],"start":start,"end":end}
         input.append(tmp)
 
-    p = Pool(cpu_count()) # プロセス数を4に設定
+    p = Pool(cpu_count()) # プロセス数を8に設定
     p.map(Prophet_Gauss_Upred, input)
     p.close()

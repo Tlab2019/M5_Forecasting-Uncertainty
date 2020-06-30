@@ -51,13 +51,13 @@ def encode_onehot(df, cols):
 quants = ['0.005', '0.025', '0.165', '0.250', '0.500', '0.750', '0.835', '0.975', '0.995']
 days = range(1, 1914)
 val_eval = ['validation', 'evaluation']
-#time_series_columns = [f'd_{i}' for i in days]
 
 def CreateSales( train_sales,name_list, group):
     '''This function returns a dataframe (sales) on the aggregation level given by name list and group'''
     
     rows_ve = [(name + "_X_" + str(q) + "_" + ve, str(q)) for name in name_list for q in quants for ve in val_eval]
     time_series_columns = [c for c in train_sales.columns if "d_" in c]
+    time_series_columns += [c for c in train_sales.columns if "F" in c]
     sales = train_sales.groupby(group)[time_series_columns].sum() #would not be necessary for lowest level
     return sales
 

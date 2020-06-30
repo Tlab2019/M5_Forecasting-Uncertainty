@@ -7,24 +7,16 @@ import copy
 
 from .function import *
 from sklearn.preprocessing import LabelEncoder
-
-def label_encode(df, cols):
-    for col in cols:
-        # Leave NaN as it is.
-        le = LabelEncoder()
-        not_null = df[col][df[col].notnull()]
-        df[col] = pd.Series(le.fit_transform(not_null), index=not_null.index)
-    #
-    return df
+from .myUtils import *
 
 ################################
 # make features using by H.Kato
 ################################
-class FeaturesMaker_v3(object):
+class FeaturesMaker_v4(object):
     
     def __init__(self,target_col):
-        self.name = "features_ver3"
-        self.feature_exp = "features from Stat-of-the-art NoteBook"
+        self.name = "features_ver4"
+        self.feature_exp = "features from Stat-of-the-art NoteBook and one-hot encoded store_id"
         
         self.target_col = target_col
         self.necessary_col =  ["id"] + ['item_id', 'dept_id', 'cat_id', 'store_id', 'state_id'] + ["data_part"] + [target_col]
@@ -36,11 +28,10 @@ class FeaturesMaker_v3(object):
         if check_columns(self.necessary_col,df.columns):
             
             target_values_tmp = copy.copy(df[self.target_col])
-            df.loc[df["data_part"] != "train",self.target_col] = np.nan
+            df.loc[df["data_part"] == "train",self.target_col] = np.nan
             
             # make lag features
-            #for lag in [1,2,3,6,12,24,36]:
-            for lag in [28,35,42,49,56]:
+            for lag in [1,2,3,6,12,24,36]:
                 df['sold_lag_'+str(lag)] = df.groupby(['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'state_id'],as_index=False)[self.target_col].shift(lag).astype(np.float16)
             
             
@@ -67,8 +58,9 @@ class FeaturesMaker_v3(object):
             df.drop(['daily_avg_sold','avg_sold'],axis=1,inplace=True)
             
             # label encoding
-            cols = ['item_id', 'dept_id', 'cat_id', 'store_id', 'state_id']
+            cols = ['item_id', 'dept_id', 'cat_id', 'state_id']
             df = label_encode(df, cols=cols)
+            df = onehot_encode(df, cols=["store_id"])
             
             
             # split train and test
