@@ -27,14 +27,17 @@ class FeaturesMaker_v4(object):
         # check existstance of necessary columns
         if check_columns(self.necessary_col,df.columns):
             
-            target_values_tmp = copy.copy(df[self.target_col])
-            df.loc[df["data_part"] == "train",self.target_col] = np.nan
-            
             # make lag features
-            for lag in [1,2,3,6,12,24,36]:
+            #for lag in [1,2,3,6,12,24,36]:
+            for lag in [28,35,42,49,56]:
                 df['sold_lag_'+str(lag)] = df.groupby(['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'state_id'],as_index=False)[self.target_col].shift(lag).astype(np.float16)
-            
-            
+
+            # save target values temporaly
+            target_values_tmp = copy.copy(df[self.target_col])
+            mask = (df["data_part"] == "train")|(df["data_part"] == "validation")
+            df.loc[~mask,self.target_col] = np.nan
+
+
             # make State-of-the-art feature
             df['item_sold_avg'] = df.groupby('item_id')[self.target_col].transform('mean').astype(np.float16)
             df['state_sold_avg'] = df.groupby('state_id')[self.target_col].transform('mean').astype(np.float16)
@@ -49,12 +52,12 @@ class FeaturesMaker_v4(object):
             df['state_store_cat_sold_avg'] = df.groupby(['state_id','store_id','cat_id'])[self.target_col].transform('mean').astype(np.float16)
             df['store_cat_dept_sold_avg'] = df.groupby(['store_id','cat_id','dept_id'])[self.target_col].transform('mean').astype(np.float16)
 
-            df['rolling_sold_mean'] = df.groupby(['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'state_id'])[self.target_col].transform(lambda x: x.rolling(window=7).mean()).astype(np.float16)
+            #df['rolling_sold_mean'] = df.groupby(['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'state_id'])[self.target_col].transform(lambda x: x.rolling(window=7).mean()).astype(np.float16)
             df['expanding_sold_mean'] = df.groupby(['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'state_id'])[self.target_col].transform(lambda x: x.expanding(2).mean()).astype(np.float16)
 
             df['daily_avg_sold'] = df.groupby(['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'state_id','d'])[self.target_col].transform('mean').astype(np.float16)
             df['avg_sold'] = df.groupby(['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'state_id'])[self.target_col].transform('mean').astype(np.float16)
-            df['selling_trend'] = (df['daily_avg_sold'] - df['avg_sold']).astype(np.float16)
+            #df['selling_trend'] = (df['daily_avg_sold'] - df['avg_sold']).astype(np.float16)
             df.drop(['daily_avg_sold','avg_sold'],axis=1,inplace=True)
             
             # label encoding

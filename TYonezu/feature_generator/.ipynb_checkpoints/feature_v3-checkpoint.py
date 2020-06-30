@@ -61,12 +61,12 @@ class FeaturesMaker_v3(object):
             df['state_store_cat_sold_avg'] = df.groupby(['state_id','store_id','cat_id'])[self.target_col].transform('mean').astype(np.float16)
             df['store_cat_dept_sold_avg'] = df.groupby(['store_id','cat_id','dept_id'])[self.target_col].transform('mean').astype(np.float16)
 
-            df['rolling_sold_mean'] = df.groupby(['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'state_id'])[self.target_col].transform(lambda x: x.rolling(window=7).mean()).astype(np.float16)
+            #df['rolling_sold_mean'] = df.groupby(['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'state_id'])[self.target_col].transform(lambda x: x.rolling(window=7).mean()).astype(np.float16)
             df['expanding_sold_mean'] = df.groupby(['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'state_id'])[self.target_col].transform(lambda x: x.expanding(2).mean()).astype(np.float16)
 
             df['daily_avg_sold'] = df.groupby(['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'state_id','d'])[self.target_col].transform('mean').astype(np.float16)
             df['avg_sold'] = df.groupby(['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'state_id'])[self.target_col].transform('mean').astype(np.float16)
-            df['selling_trend'] = (df['daily_avg_sold'] - df['avg_sold']).astype(np.float16)
+            #df['selling_trend'] = (df['daily_avg_sold'] - df['avg_sold']).astype(np.float16)
             df.drop(['daily_avg_sold','avg_sold'],axis=1,inplace=True)
             
             # label encoding
